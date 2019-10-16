@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.IUserMapper">
+    <!-- 数据库中的列名与实体类中的属性名对不上 解决方案一 执行效率高
+    <select id="findAllUser" resultType="com.itheima.entity.User">
+        select id as userId, username as userName,birthday as userBirthday,sex as userSex,address as userAddress from user
+    </select>
+    -->
+    <!-- 数据库中的列名与实体类中的属性名对不上 解决方案二 开发效率高 -->
+    <resultMap id="UserMap" type="user">
+        <id property="userId" column="id"></id>
+        <result property="userName" column="username"></result>
+        <result property="userBirthday" column="birthday"></result>
+        <result property="userSex" column="sex"></result>
+        <result property="userAddress" column="address"></result>
+    </resultMap>
+    
+    <sql id="sql001">
+        select * from user
+    </sql>
+    
+    <select id="findAllUser" resultMap="UserMap">
+        <include refid="sql001"></include>
+    </select>
+
+    <insert id="insertUser" parameterType="com.itheima.entity.User">
+        <selectKey keyProperty="userId" keyColumn="id" order="AFTER" resultType="Integer">
+            select last_insert_id();
+        </selectKey>
+        insert into user(username, address, sex, birthday)
+            values(#{userName}, #{userAddress}, #{userSex}, #{userBirthday});
+    </insert>
+
+    <update id="updateUser" parameterType="user">
+        update user set username = #{userName}, address = #{userAddress}, sex = #{userSex},
+            birthday= #{userBirthday} where id = #{userId}
+    </update>
+
+    <delete id="deleteUser" parameterType="Integer">
+        delete from user where id = #{userid}
+    </delete>
+
+    <select id="findUserById" parameterType="Integer" resultType="com.itheima.entity.User">
+        select * from user where id = #{userId}
+    </select>
+
+    <select id="findUserByName" parameterType="String" resultType="com.itheima.entity.User">
+        select * from user where username like #{userName}
+    </select>
+
+    <select id="UserTotal" resultType="Integer">
+        select count(id) from user
+    </select>
+
+    <select id="findUserByVo" parameterType="com.itheima.entity.QueryVo"
+            resultType="com.itheima.entity.User">
+        select * from user where username like #{user.userName}
+    </select>
+
+    <select id="findUserByCondition" parameterType="user"
+            resultMap="UserMap">
+        select * from user
+        <where>
+        <if test="userName != null">
+            and username = #{userName}
+        </if>
+        <if test="userSex != null">
+            and sex = #{userSex}
+        </if>
+        </where>
+    </select>
+
+    <select id="findUserByIds" parameterType="QueryVo"
+            resultMap="UserMap">
+        select * from user where 1 =1
+        <foreach collection="ids" open=" and id in (" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>
